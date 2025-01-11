@@ -17,7 +17,8 @@
 
 ### Główny ekran aplikacji
 Ekran umożliwiający przeglądanie zapisanych danych geolokalizacyjnych oraz dodawanie nowych lokalizacji:
-![Główny ekran](https://github.com/user-attachments/assets/e6991c92-b329-4781-9ea3-37fbd4bfa5cb)
+![Główny ekran](https://github.com/user-attachments/assets/e8aee286-3b55-4f4f-ad62-5295159a59ac)
+
 
 ### Wyszukiwanie geolokalizacji
 Ekran umożliwia wyszukiwanie informacji geolokalizacyjnych na podstawie wprowadzonego adresu IP / URL. Pobierana jest cząstka informacji.
