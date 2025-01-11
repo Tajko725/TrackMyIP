@@ -13,6 +13,17 @@
 - **Intuicyjny interfejs użytkownika**:
   - Oparty na bibliotece MahApps.Metro z obsługą wzorca MVVM, zapewniający czytelność i prostotę obsługi.
 
+## 🖥️ Zrzuty ekranu
+
+### Główny ekran aplikacji
+Ekran umożliwiający przeglądanie zapisanych danych geolokalizacyjnych oraz dodawanie nowych lokalizacji:
+![Główny ekran](https://github.com/user-attachments/assets/e6991c92-b329-4781-9ea3-37fbd4bfa5cb)
+
+### Wyszukiwanie geolokalizacji
+Ekran umożliwia wyszukiwanie informacji geolokalizacyjnych na podstawie wprowadzonego adresu IP / URL. Pobierana jest cząstka informacji.
+![Wyszukiwanie_geolokalizacji](https://github.com/user-attachments/assets/c99154cc-bea5-4dd9-bd84-38d8c0c2f442)
+![image](https://github.com/user-attachments/assets/ed8d66cf-1f22-4fbb-aa8f-607366704ecf)
+
 ## 🛠 Wymagania
 
 1. **.NET 9**: Upewnij się, że masz zainstalowane środowisko .NET 9.
