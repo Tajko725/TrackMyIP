@@ -21,6 +21,7 @@ Ekran umożliwiający przeglądanie zapisanych danych geolokalizacyjnych oraz do
 
 ### Wyszukiwanie geolokalizacji
 Ekran umożliwia wyszukiwanie informacji geolokalizacyjnych na podstawie wprowadzonego adresu IP / URL. Pobierana jest cząstka informacji.
+
 ![Wyszukiwanie_geolokalizacji](https://github.com/user-attachments/assets/c99154cc-bea5-4dd9-bd84-38d8c0c2f442)
 ![image](https://github.com/user-attachments/assets/ed8d66cf-1f22-4fbb-aa8f-607366704ecf)
 
