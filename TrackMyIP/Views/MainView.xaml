@@ -13,8 +13,9 @@
     Width="1050"
     Height="450"
     dialog:DialogParticipation.Register="{Binding}"
+    ShowIconOnTitleBar="True"
     WindowStartupLocation="CenterScreen"
-    mc:Ignorable="d">
+    mc:Ignorable="d" Icon="/Files/Icons/TrackMyIP.ico" >
     <ctrl:MetroWindow.DataContext>
         <vm:MainViewModel />
     </ctrl:MetroWindow.DataContext>
