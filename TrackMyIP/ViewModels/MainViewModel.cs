@@ -201,7 +201,7 @@ namespace TrackMyIP.ViewModels
             InitializeCommands();
             InitializeButtons();
 
-            ShowSettings(null!);
+            ShowGeolocations(null);
         }
 
         /// <summary>
