@@ -1,0 +1,210 @@
+﻿<ctrl:MetroWindow
+    x:Class="TrackMyIP.Views.MainView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctrl="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    xmlns:local="clr-namespace:TrackMyIP"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:TrackMyIP.ViewModels"
+    x:Name="mainView"
+    Title="Track My IP"
+    Width="1050"
+    Height="450"
+    dialog:DialogParticipation.Register="{Binding}"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <ctrl:MetroWindow.DataContext>
+        <vm:MainViewModel />
+    </ctrl:MetroWindow.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <GroupBox Grid.RowSpan="2" Margin="0,0,3,0">
+            <GroupBox.Header>
+                <TextBlock
+                    HorizontalAlignment="Center"
+                    FontSize="14"
+                    FontWeight="DemiBold"
+                    Foreground="{StaticResource MahApps.Brushes.Badged.Foreground}"
+                    Text="Opcje" />
+            </GroupBox.Header>
+            <StackPanel>
+                <Button
+                    Command="{Binding ShowGeolocationsButton.Command}"
+                    Content="{Binding ShowGeolocationsButton.Content}"
+                    ToolTip="{Binding ShowGeolocationsButton.ToolTip}" />
+                <Button
+                    Command="{Binding ShowSettingsButton.Command}"
+                    Content="{Binding ShowSettingsButton.Content}"
+                    ToolTip="{Binding ShowSettingsButton.ToolTip}" />
+                <Button
+                    Command="{Binding CloseButton.Command}"
+                    CommandParameter="{Binding ElementName=mainView}"
+                    Content="{Binding CloseButton.Content}"
+                    ToolTip="{Binding CloseButton.ToolTip}" />
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Visibility="{Binding ShowGeolocationsVisibility}">
+            <GroupBox.Header>
+                <TextBlock
+                    FontSize="14"
+                    FontWeight="DemiBold"
+                    Foreground="{StaticResource MahApps.Brushes.Badged.Foreground}"
+                    Text="Geoloalizacje" />
+            </GroupBox.Header>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <DataGrid
+                    AutoGenerateColumns="False"
+                    CanUserAddRows="False"
+                    CanUserDeleteRows="False"
+                    ItemsSource="{Binding Geolocations}"
+                    SelectedItem="{Binding SelectedGeolocation}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn
+                            Width="150"
+                            Binding="{Binding IP}"
+                            Header="IP / URL"
+                            IsReadOnly="True" />
+                        <DataGridTextColumn
+                            Width="150"
+                            Binding="{Binding Country}"
+                            Header="Państwo" />
+                        <DataGridTextColumn
+                            Width="150"
+                            Binding="{Binding Region}"
+                            Header="Region" />
+                        <DataGridTextColumn
+                            Width="150"
+                            Binding="{Binding City}"
+                            Header="Miejscowość" />
+                        <DataGridTextColumn
+                            Width="100"
+                            Binding="{Binding Longitude}"
+                            Header="Wysokość" />
+                        <DataGridTextColumn
+                            Width="*"
+                            Binding="{Binding Latitude}"
+                            Header="Szerokość" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <StackPanel
+                    Grid.Row="1"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+                    <Button
+                        Command="{Binding ShowSearchingGeolocationButton.Command}"
+                        Content="{Binding ShowSearchingGeolocationButton.Content}"
+                        ToolTip="{Binding ShowSearchingGeolocationButton.ToolTip}" />
+                    <Button
+                        Command="{Binding UpdateGeolocationButton.Command}"
+                        Content="{Binding UpdateGeolocationButton.Content}"
+                        ToolTip="{Binding UpdateGeolocationButton.ToolTip}" />
+                    <Button
+                        Command="{Binding DeleteGeolocationButton.Command}"
+                        Content="{Binding DeleteGeolocationButton.Content}"
+                        ToolTip="{Binding DeleteGeolocationButton.ToolTip}" />
+                    <Button
+                        Command="{Binding RefreshGeolocationsButton.Command}"
+                        Content="{Binding RefreshGeolocationsButton.Content}"
+                        ToolTip="{Binding RefreshGeolocationsButton.ToolTip}" />
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+
+        <GroupBox
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Visibility="{Binding ShowSettingsVisibility}">
+
+            <GroupBox.Header>
+                <TextBlock
+                    FontSize="14"
+                    FontWeight="DemiBold"
+                    Foreground="{StaticResource MahApps.Brushes.Badged.Foreground}"
+                    Text="Ustawienia" />
+            </GroupBox.Header>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <GroupBox Grid.ColumnSpan="2">
+                    <GroupBox.Header>
+                        <TextBlock
+                            FontWeight="Bold"
+                            Foreground="{StaticResource MahApps.Brushes.Badged.Foreground}"
+                            Text="Szczegóły API ipstack" />
+                    </GroupBox.Header>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Klucz" />
+                        <TextBox
+                            Grid.Column="1"
+                            Width="265"
+                            HorizontalAlignment="Left"
+                            ctrl:TextBoxHelper.Watermark="Wprowadź klucz API na ipstack.com.."
+                            Text="{Binding SettingsViewModel.IpStackApiKey, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Grid.Column="2" ToolTip="Przejdź do strony internetowej API https://ipstack.com">
+                            <Hyperlink Command="{Binding SettingsViewModel.GoToWwwCommand}" CommandParameter="https://ipstack.com">
+                                https://ipstack.com
+                            </Hyperlink>
+                        </TextBlock>
+
+                        <StackPanel
+                            Grid.Row="1"
+                            Grid.ColumnSpan="2"
+                            Margin="3"
+                            Orientation="Horizontal">
+                            <Button
+                                Command="{Binding SettingsViewModel.LoadButton.Command}"
+                                Content="{Binding SettingsViewModel.LoadButton.Content}"
+                                ToolTip="{Binding SettingsViewModel.LoadButton.ToolTip}" />
+                            <Button
+                                Command="{Binding SettingsViewModel.SaveButton.Command}"
+                                Content="{Binding SettingsViewModel.SaveButton.Content}"
+                                ToolTip="{Binding SettingsViewModel.SaveButton.ToolTip}" />
+                            <Button
+                                Command="{Binding SettingsViewModel.CheckApiKeyIsValidButton.Command}"
+                                Content="{Binding SettingsViewModel.CheckApiKeyIsValidButton.Content}"
+                                ToolTip="{Binding SettingsViewModel.CheckApiKeyIsValidButton.ToolTip}" />
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</ctrl:MetroWindow>

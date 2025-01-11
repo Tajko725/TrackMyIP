@@ -1,0 +1,110 @@
+﻿<ctrl:MetroWindow
+    x:Class="TrackMyIP.Views.SearchGeolocationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:ctrl="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:local="clr-namespace:TrackMyIP.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:TrackMyIP.ViewModels"
+    x:Name="searchGeolocationView"
+    Title="Wyszukiwanie geolokalizacji"
+    Width="540"
+    Height="310"
+    dialog:DialogParticipation.Register="{Binding}"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+    <ctrl:MetroWindow.DataContext>
+        <vm:SearchGeolocationViewModel />
+    </ctrl:MetroWindow.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal">
+            <TextBlock FontWeight="DemiBold" Text="Adres IP/URL" />
+            <TextBox
+                Width="300"
+                Margin="3"
+                VerticalAlignment="Center"
+                ctrl:TextBoxHelper.ClearTextButton="True"
+                ctrl:TextBoxHelper.Watermark="Wprowadź adres IP / URL.."
+                Text="{Binding AddressSearched, UpdateSourceTrigger=PropertyChanged}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="PreviewKeyDown">
+                        <i:InvokeCommandAction Command="{Binding AddressSearchedKeydownCommand}" PassEventArgsToCommand="True" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
+            <Button
+                Width="150"
+                Command="{Binding SearchButton.Command}"
+                Content="{Binding SearchButton.Content}"
+                ToolTip="{Binding SearchButton.ToolTip}" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <TextBlock Text="IP/URL" />
+            <TextBox Grid.Column="1" Text="{Binding GeolocationData.IP, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="1" Text="Państwo" />
+            <TextBox
+                Grid.Row="1"
+                Grid.Column="1"
+                Text="{Binding GeolocationData.Country, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="2" Text="Region" />
+            <TextBox
+                Grid.Row="2"
+                Grid.Column="1"
+                Text="{Binding GeolocationData.Region, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="3" Text="Miejscowość" />
+            <TextBox
+                Grid.Row="3"
+                Grid.Column="1"
+                Text="{Binding GeolocationData.City, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="4" Text="Szerokość geograficzna" />
+            <TextBox
+                Grid.Row="4"
+                Grid.Column="1"
+                Text="{Binding GeolocationData.Latitude, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Grid.Row="5" Text="Długość geograficzna" />
+            <TextBox
+                Grid.Row="5"
+                Grid.Column="1"
+                Text="{Binding GeolocationData.Longitude}" />
+        </Grid>
+
+        <StackPanel
+            Grid.Row="2"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
+            <Button
+                Command="{Binding AddButton.Command, UpdateSourceTrigger=PropertyChanged}"
+                CommandParameter="{Binding ElementName=searchGeolocationView}"
+                Content="{Binding AddButton.Content}"
+                ToolTip="{Binding AddButton.ToolTip}" />
+            <Button
+                Command="{Binding CloseButton.Command}"
+                CommandParameter="{Binding ElementName=searchGeolocationView}"
+                Content="{Binding CloseButton.Content}"
+                ToolTip="{Binding CloseButton.ToolTip}" />
+        </StackPanel>
+    </Grid>
+</ctrl:MetroWindow>
