@@ -50,4 +50,4 @@ TrackMyIP wykorzystuje następujące biblioteki:
 1. **Pobierz projekt**:
    - Sklonuj repozytorium lub pobierz jako plik ZIP.
    ```bash
-   git clone https://github.com/your-repo-name/TrackMyIP.git
+   git clone https://github.com/Tajko725/TrackMyIP
