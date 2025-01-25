@@ -17,7 +17,8 @@
 
 ### Główny ekran aplikacji
 Ekran umożliwiający przeglądanie zapisanych danych geolokalizacyjnych oraz dodawanie nowych lokalizacji:
-![Główny ekran](https://github.com/user-attachments/assets/e6991c92-b329-4781-9ea3-37fbd4bfa5cb)
+![Główny ekran](https://github.com/user-attachments/assets/e8aee286-3b55-4f4f-ad62-5295159a59ac)
+
 
 ### Wyszukiwanie geolokalizacji
 Ekran umożliwia wyszukiwanie informacji geolokalizacyjnych na podstawie wprowadzonego adresu IP / URL. Pobierana jest cząstka informacji.
@@ -49,4 +50,4 @@ TrackMyIP wykorzystuje następujące biblioteki:
 1. **Pobierz projekt**:
    - Sklonuj repozytorium lub pobierz jako plik ZIP.
    ```bash
-   git clone https://github.com/your-repo-name/TrackMyIP.git
+   git clone https://github.com/Tajko725/TrackMyIP
