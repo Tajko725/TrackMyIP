@@ -1,7 +1,9 @@
 ﻿using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Input;
 using TrackMyIP.Models;
 using TrackMyIP.Services;
+using TrackMyIP.Services.Interfaces;
 using TrackMyIP.Views;
 
 namespace TrackMyIP.ViewModels
@@ -17,8 +19,8 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Gets or sets the dialog coordinator for displaying dialogs in the application.
         /// </summary>
-        public IDialogCoordinator? DialogCoordinator { get; set; }
-        private IpStackService _ipStackService { get; set; }
+        public readonly IDialogCoordinator? DialogCoordinator;
+        private readonly IIpStackService? _ipStackService;
 
         private string? _addressSearched;
         /// <summary>
@@ -109,15 +111,23 @@ namespace TrackMyIP.ViewModels
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="SearchGeolocationViewModel"/> class.
-        /// Configures commands, buttons, and initializes the geolocation service.
+        /// Initializes a new instance of the <see cref="SearchGeolocationViewModel" /> class.
         /// </summary>
         public SearchGeolocationViewModel()
         {
             InitializeCommands();
             InitializeButtons();
+        }
 
-            _ipStackService = new IpStackService();
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchGeolocationViewModel" /> class with the specified dependencies.
+        /// </summary>
+        /// <param name="ipStackService">The service for fetching geolocation data from the ipstack API.</param>
+        /// <param name="dialogCoordinator">The dialog coordinator used for displaying dialogs in the application.</param>
+        public SearchGeolocationViewModel(IIpStackService ipStackService, IDialogCoordinator dialogCoordinator) : this()
+        {
+            _ipStackService = ipStackService;
+            DialogCoordinator = dialogCoordinator;
         }
         #endregion Constructors
 
@@ -127,10 +137,10 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeCommands()
         {
-            SearchCommand = new RelayCommand(async _ => await Search(), _ => CanSearch);
+            SearchCommand = new RelayCommand(async _ => await SearchAsync(), _ => CanSearch);
             AddCommand = new RelayCommand(Add, _ => CanAdd);
             CloseCommand = new RelayCommand(Close);
-            AddressSearchedKeydownCommand = new RelayCommand(AddressSearchedKeydown);
+            AddressSearchedKeydownCommand = new RelayCommand(AddressSearchedKeydownAsync);
         }
 
         /// <summary>
@@ -138,16 +148,15 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeButtons()
         {
-            SearchButton = new ButtonInfo("Wyszukaj", SearchCommand!, null!, "Wyszukaj dane geolokalizacyjne.");
-            AddButton = new ButtonInfo("Dodaj", AddCommand!, null!, "Dodaj dane geolokalizacyjne.");
-            CloseButton = new ButtonInfo("Zamknij", CloseCommand!, null!, "Zamknij okno.");
+            SearchButton = new ButtonInfo("Wyszukaj", SearchCommand!, toolTip: "Wyszukaj dane geolokalizacyjne.");
+            AddButton = new ButtonInfo("Dodaj", AddCommand!, toolTip: "Dodaj dane geolokalizacyjne.");
+            CloseButton = new ButtonInfo("Zamknij", CloseCommand!, toolTip: "Zamknij okno.");
         }
 
         /// <summary>
         /// Executes the search command by fetching geolocation data asynchronously.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        private async Task Search()
+        private async Task SearchAsync()
         {
             await FetchLocationAsync();
         }
@@ -156,7 +165,6 @@ namespace TrackMyIP.ViewModels
         /// Fetches geolocation data from the service based on the address or IP entered.
         /// Updates the <see cref="GeolocationData"/> property with the retrieved data.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation.</returns>
         private async Task FetchLocationAsync()
         {
             if (string.IsNullOrWhiteSpace(AddressSearched))
@@ -164,7 +172,7 @@ namespace TrackMyIP.ViewModels
 
             try
             {
-                GeolocationData = await _ipStackService.FetchLocationAsync(AddressSearched);
+                GeolocationData = await _ipStackService!.FetchLocationAsync(AddressSearched);
                 OnPropertyChanged(nameof(GeolocationData));
             }
             catch (Exception ex)
@@ -201,10 +209,10 @@ namespace TrackMyIP.ViewModels
         /// Handles the Enter key press event in the address input field and triggers the search.
         /// </summary>
         /// <param name="obj">The key event arguments.</param>
-        private async void AddressSearchedKeydown(object? obj)
+        private async void AddressSearchedKeydownAsync(object? obj)
         {
             if (obj is KeyEventArgs args && args.Key == Key.Enter)
-                await Search();
+                await SearchAsync();
         }
 
         #endregion Methods

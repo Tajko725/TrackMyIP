@@ -1,9 +1,11 @@
 ﻿using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using TrackMyIP.Models;
 using TrackMyIP.Services;
+using TrackMyIP.Services.Interfaces;
 using TrackMyIP.Views;
 
 namespace TrackMyIP.ViewModels
@@ -20,13 +22,13 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Gets or sets the dialog coordinator for displaying dialogs in the application.
         /// </summary>
-        public IDialogCoordinator? DialogCoordinator { get; set; }
-        private GeolocationService? _geolocationService;
+        public IDialogCoordinator DialogCoordinator { get; } = null!;
+        private readonly IGeolocationService _geolocationService = null!;
 
         /// <summary>
         /// Gets or sets the collection of geolocation data displayed in the application.
         /// </summary>
-        public required ObservableCollection<GeolocationData> Geolocations { get; set; }
+        public required ObservableCollection<GeolocationData> Geolocations { get; set; } = [];
 
         private GeolocationData? _selectedGeolocation;
         /// <summary>
@@ -80,22 +82,10 @@ namespace TrackMyIP.ViewModels
             }
         }
 
-        private SettingsViewModel? _settingsViewModel;
         /// <summary>
         /// Gets or sets the view model for the settings view.
         /// </summary>
-        public SettingsViewModel? SettingsViewModel
-        {
-            get => _settingsViewModel;
-            set
-            {
-                if (_settingsViewModel != value)
-                {
-                    _settingsViewModel = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        public SettingsViewModel? SettingsViewModel { get; }
         #endregion Properties
 
         #region Commands
@@ -179,12 +169,28 @@ namespace TrackMyIP.ViewModels
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="MainViewModel"/> class.
+        /// Initializes a new instance of the <see cref="MainViewModel" /> class.
         /// </summary>
         public MainViewModel()
         {
             Initialize();
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MainViewModel" /> class.
+        /// </summary>
+        /// <param name="geolocationService">Service for managing geolocation data.</param>
+        /// <param name="dialogCoordinator">Dialog coordinator for displaying dialogs in the application.</param>
+        /// <param name="settingsViewModel">ViewModel for managing application settings.</param>
+        public MainViewModel(IGeolocationService geolocationService, IDialogCoordinator dialogCoordinator, SettingsViewModel settingsViewModel) : this()
+        {
+            _geolocationService = geolocationService;
+            DialogCoordinator = dialogCoordinator;
+            SettingsViewModel = settingsViewModel;
+
+            ShowGeolocations(null);
+        }
+
         #endregion Constructors
 
         #region Methods
@@ -194,14 +200,8 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void Initialize()
         {
-            Geolocations = [];
-            var dbContext = new GeolocationDbContext();
-            _geolocationService = new GeolocationService(dbContext);
-
             InitializeCommands();
             InitializeButtons();
-
-            ShowGeolocations(null);
         }
 
         /// <summary>
@@ -216,7 +216,7 @@ namespace TrackMyIP.ViewModels
 
             UpdateGeolocationCommand = new RelayCommand(async _ => await EditLocationAsync(), _ => SelectedGeolocation != null && !_isBusy);
             DeleteGeolocationCommand = new RelayCommand(async _ => await DeleteGeolocationAsync(), _ => SelectedGeolocation != null && !_isBusy);
-            RefreshGeoocationsCommand = new RelayCommand(async _ => await LoadGeolocations(), _ => !_isBusy);
+            RefreshGeoocationsCommand = new RelayCommand(async _ => await LoadGeolocationsAsync(), _ => !_isBusy);
         }
 
         /// <summary>
@@ -229,16 +229,15 @@ namespace TrackMyIP.ViewModels
             ShowSettingsButton = new ButtonInfo("Ustawienia", ShowSettingsCommand!, null!, "Przejdź do ustawień.");
             CloseButton = new ButtonInfo("Zamknij", CloseCommand!, null!, "Zamknij aplikację.");
 
-            DeleteGeolocationButton = new ButtonInfo("Usuń", DeleteGeolocationCommand!, null!, "");
-            UpdateGeolocationButton = new ButtonInfo("Aktualizuj", UpdateGeolocationCommand!, null!, "");
-            RefreshGeolocationsButton = new ButtonInfo("Odśwież", RefreshGeoocationsCommand!, null!, "");
+            DeleteGeolocationButton = new ButtonInfo("Usuń", DeleteGeolocationCommand!);
+            UpdateGeolocationButton = new ButtonInfo("Aktualizuj", UpdateGeolocationCommand!);
+            RefreshGeolocationsButton = new ButtonInfo("Odśwież", RefreshGeoocationsCommand!);
         }
 
         /// <summary>
-        /// Loads the list of geolocations from the database and updates the <see cref="Geolocations"/> collection.
+        /// Loads the list of geolocations asynchronously.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        private async Task LoadGeolocations()
+        private async Task LoadGeolocationsAsync()
         {
             var locations = await _geolocationService!.GetAllAsync();
             Geolocations.Clear();
@@ -252,8 +251,8 @@ namespace TrackMyIP.ViewModels
         /// <param name="obj">Optional parameter for the command.</param>
         private async void ShowShowSearchingGeolocation(object? obj)
         {
-            var sgv = new SearchGeolocationView();
-            if (sgv.ShowDialog()!.Value && sgv.DataContext is SearchGeolocationViewModel vm)
+            var sgv = ServiceLocator.Services.GetService<SearchGeolocationView>();
+            if (sgv!.ShowDialog()!.Value && sgv.DataContext is SearchGeolocationViewModel vm)
             {
                 if (Geolocations.Any(x => x.IP == vm.GeolocationData!.IP))
                 {
@@ -274,7 +273,7 @@ namespace TrackMyIP.ViewModels
             ShowGeolocationsVisibility = Visibility.Visible;
             ShowSettingsVisibility = Visibility.Collapsed;
 
-            await LoadGeolocations();
+            await LoadGeolocationsAsync();
         }
 
         /// <summary>
@@ -301,7 +300,6 @@ namespace TrackMyIP.ViewModels
         /// Adds a new geolocation to the database and updates the collection.
         /// </summary>
         /// <param name="geolocationData">The geolocation data to add.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
         private async Task AddLocationAsync(GeolocationData geolocationData)
         {
             if (_isBusy)
@@ -316,7 +314,6 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Updates the selected geolocation in the database and the collection.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation.</returns>
         private async Task EditLocationAsync()
         {
             if (_isBusy)
@@ -344,7 +341,6 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Deletes the selected geolocation from the database and updates the collection.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation.</returns>
         private async Task DeleteGeolocationAsync()
         {
             if (_isBusy)

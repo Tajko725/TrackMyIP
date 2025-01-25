@@ -1,5 +1,4 @@
 ﻿using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
 using TrackMyIP.ViewModels;
 
 namespace TrackMyIP.Views
@@ -9,10 +8,10 @@ namespace TrackMyIP.Views
     /// </summary>
     public partial class SearchGeolocationView : MetroWindow
     {
-        public SearchGeolocationView()
+        public SearchGeolocationView( SearchGeolocationViewModel searchGeolocationViewModel)
         {
             InitializeComponent();
-            ((SearchGeolocationViewModel)DataContext).DialogCoordinator = DialogCoordinator.Instance;
+            DataContext = searchGeolocationViewModel;
         }
     }
 }

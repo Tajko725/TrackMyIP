@@ -13,13 +13,12 @@
     Title="Wyszukiwanie geolokalizacji"
     Width="540"
     Height="310"
+    d:DataContext="{d:DesignInstance Type=vm:SearchGeolocationViewModel,
+                                     IsDesignTimeCreatable=True}"
     dialog:DialogParticipation.Register="{Binding}"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <ctrl:MetroWindow.DataContext>
-        <vm:SearchGeolocationViewModel />
-    </ctrl:MetroWindow.DataContext>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />

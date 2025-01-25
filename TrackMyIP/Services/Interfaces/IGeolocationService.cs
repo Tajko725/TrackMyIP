@@ -1,6 +1,6 @@
 ﻿using TrackMyIP.Models;
 
-namespace TrackMyIP.Services
+namespace TrackMyIP.Services.Interfaces
 {
     /// <summary>
     /// Defines methods for managing geolocation data.

@@ -2,7 +2,7 @@
 using System.Windows;
 using System.Windows.Input;
 using TrackMyIP.Models;
-using TrackMyIP.Services;
+using TrackMyIP.Services.Interfaces;
 
 namespace TrackMyIP.ViewModels
 {
@@ -17,8 +17,8 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Gets or sets the dialog coordinator for displaying dialogs in the application.
         /// </summary>
-        public IDialogCoordinator? DialogCoordinator { get; set; }
-        private readonly IpStackService _ipStackService;
+        public IDialogCoordinator DialogCoordinator { get; }
+        private readonly IIpStackService _ipStackService;
 
         private string? _ipStackApiKey;
         /// <summary>
@@ -42,7 +42,7 @@ namespace TrackMyIP.ViewModels
         /// The API key must not be null or whitespace.
         /// </summary>
         private bool CanSave => !string.IsNullOrWhiteSpace(_ipStackApiKey);
-        
+
         #endregion Properties
 
         #region Commands
@@ -87,22 +87,30 @@ namespace TrackMyIP.ViewModels
 
         #region Constructors
         /// <summary>
-        /// Initializes a new instance of the <see cref="SettingsViewModel"/> class.
-        /// Loads the initial settings and initializes commands and buttons.
+        /// Initializes a new instance of the <see cref="SettingsViewModel" /> class with the specified dependencies.
         /// </summary>
-        /// <param name="dialogCoordinator">The dialog coordinator for displaying dialogs.</param>
-        public SettingsViewModel(IDialogCoordinator dialogCoordinator)
+        /// <param name="ipStackService">The service used for managing interactions with the ipstack API.</param>
+        /// <param name="dialogCoordinator">The dialog coordinator used for displaying dialogs in the application.</param>
+        public SettingsViewModel(IIpStackService ipStackService, IDialogCoordinator dialogCoordinator)
         {
+            _ipStackService = ipStackService;
             DialogCoordinator = dialogCoordinator;
-            Load(null!);
-            InitializeCommands();
-            InitializeButtons();
 
-            _ipStackService = new IpStackService();
+            Initialize();
         }
         #endregion Constructors
 
         #region Methods
+
+        /// <summary>
+        /// Initializes the view model by loading settings, initializing commands, and configuring buttons.
+        /// </summary>
+        private void Initialize()
+        {
+            Load(null!);
+            InitializeCommands();
+            InitializeButtons();
+        }
 
         /// <summary>
         /// Initializes all commands used in the settings view model.
@@ -110,11 +118,15 @@ namespace TrackMyIP.ViewModels
         private void InitializeCommands()
         {
             LoadCommand = new RelayCommand(Load);
-            SaveCommand = new RelayCommand(async _ => await Save(), x => CanSave);
-            CheckApiKeyIsValidCommand = new RelayCommand(CheckApiKeyIsValid, x => CanSave);
+            SaveCommand = new RelayCommand(async _ => await SaveAsync(), x => CanSave);
+            CheckApiKeyIsValidCommand = new RelayCommand(CheckApiKeyIsValidAsync, x => CanSave);
             GoToWwwCommand = new RelayCommand(GoToWww);
         }
 
+        /// <summary>
+        /// Opens a URL in the system's default web browser.
+        /// </summary>
+        /// <param name="obj">The URL to open, passed as an object.</param>
         private void GoToWww(object? obj)
         {
             if (obj is string url)
@@ -126,9 +138,9 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeButtons()
         {
-            LoadButton = new ButtonInfo("Wczytaj", LoadCommand!, null!, "Wczytaj ustawienia.");
-            SaveButton = new ButtonInfo("Zapisz", SaveCommand!, null!, "Zapisz ustawienia.");
-            CheckApiKeyIsValidButton = new ButtonInfo("Sprawdź", CheckApiKeyIsValidCommand!, null!, "Sprawdź poprawność klucza API poprzed pojedyncze zapytanie o www.google.pl.");
+            LoadButton = new ButtonInfo("Wczytaj", LoadCommand!, toolTip: "Wczytaj ustawienia.");
+            SaveButton = new ButtonInfo("Zapisz", SaveCommand!, toolTip: "Zapisz ustawienia.");
+            CheckApiKeyIsValidButton = new ButtonInfo("Sprawdź", CheckApiKeyIsValidCommand!, toolTip: "Sprawdź poprawność klucza API poprzed pojedyncze zapytanie o www.google.pl.");
         }
 
         /// <summary>
@@ -143,11 +155,11 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Saves the current settings to the application configuration file.
         /// </summary>
-        private async Task Save()
+        private async Task SaveAsync()
         {
             AppConfigHelper.UpdateAppSetting("IPStackApiKey", IpStackApiKey!);
 
-            await MessageBoxEx.ShowMessageAsync(new MessageInfo("Zapis ustawień", "Ustawienia zapisane pomyślnie."), Application.Current.MainWindow.DataContext, DialogCoordinator);
+            await ShowMessageAsync("Zapis ustawień", "Ustawienia zapisane pomyślnie.");
         }
 
         /// <summary>
@@ -155,13 +167,12 @@ namespace TrackMyIP.ViewModels
         /// Displays the result in a dialog.
         /// </summary>
         /// <param name="obj">Optional parameter for the command.</param>
-        private async void CheckApiKeyIsValid(object? obj)
+        private async void CheckApiKeyIsValidAsync(object? obj)
         {
             try
             {
-                bool isOK = await _ipStackService.CheckApiKeyAsync();
-                string resultMessage = !isOK ? "Nieprawidłowy klucz API." : "Podano prawidłowy klucz.";
-                await MessageBoxEx.ShowMessageAsync(new MessageInfo("Sprawdzenie poprawności klucza API", resultMessage), Application.Current.MainWindow.DataContext, DialogCoordinator);
+                string resultMessage = await _ipStackService.ValidateApiKeyAsync();
+                await ShowMessageAsync("Sprawdzenie poprawności klucza API", resultMessage);
             }
             catch (Exception ex)
             {
@@ -169,10 +180,20 @@ namespace TrackMyIP.ViewModels
                     ? "Problem z połączeniem internetowym."
                     : $"Błąd podczas odczytywania informacji:\n{ex.Message}";
 
-                await MessageBoxEx.ShowMessageAsync(new MessageInfo("Sprawdzenie poprawności klucza API", errorMessage), Application.Current.MainWindow.DataContext, DialogCoordinator);
+                await ShowMessageAsync("Sprawdzenie poprawności klucza API", errorMessage);
             }
         }
 
+        /// <summary>
+        /// Displays a message dialog asynchronously using the specified dialog coordinator.
+        /// </summary>
+        /// <param name="messageInfo">The message details, including title and content, to display in the dialog.</param>
+        /// <param name="dataContext">The data context of the current window, typically used for binding.</param>
+        /// <param name="dialogCoordinator">The dialog coordinator used to display the dialog.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        private async Task ShowMessageAsync(string title, string message)
+            => await MessageBoxEx.ShowMessageAsync(new MessageInfo(title, message), Application.Current.MainWindow.DataContext, DialogCoordinator);
+        
         #endregion Methods
     }
 }

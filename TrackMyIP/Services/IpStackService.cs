@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using TrackMyIP.Models;
+using TrackMyIP.Services.Interfaces;
 
 namespace TrackMyIP.Services
 {
@@ -8,9 +9,8 @@ namespace TrackMyIP.Services
     /// Service for interacting with the ipstack API, including checking API keys,
     /// fetching geolocation data, and monitoring API usage.
     /// </summary>
-    public class IpStackService()
+    public class IpStackService: IIpStackService
     {
-        private readonly string _apiKey = AppConfigHelper.GetAppSetting("IPStackApiKey")!;
         private const string _baseUrl = "http://api.ipstack.com/";
 
         /// <summary>
@@ -60,6 +60,19 @@ namespace TrackMyIP.Services
         }
 
         /// <summary>
+        /// Validates the API key by making a test request to the ipstack service.
+        /// </summary>
+        /// <returns>
+        /// A task representing the asynchronous operation, containing a string message indicating whether the API key is valid.
+        /// Returns "Podano prawidłowy klucz." if the API key is valid, otherwise returns "Nieprawidłowy klucz API.".
+        /// </returns>
+        public async Task<string> ValidateApiKeyAsync()
+        {
+            bool isOk = await CheckApiKeyAsync();
+            return isOk ? "Podano prawidłowy klucz." : "Nieprawidłowy klucz API.";
+        }
+
+        /// <summary>
         /// Sends a request to the ipstack API and parses the response as a JSON object.
         /// </summary>
         /// <param name="query">The query string, such as an IP address, URL, or "status" for usage information.</param>
@@ -67,7 +80,7 @@ namespace TrackMyIP.Services
         /// <exception cref="Exception">Throws an exception if the HTTP request fails or the response is not successful.</exception>
         private async Task<JObject> SendRequestAsync(string query)
         {
-            string url = $"{_baseUrl}{query}?access_key={_apiKey}";
+            string url = $"{_baseUrl}{query}?access_key={AppConfigHelper.GetAppSetting("IPStackApiKey")}";
 
             using HttpClient client = new();
             HttpResponseMessage response = await client.GetAsync(url);

@@ -12,13 +12,13 @@
     Title="Track My IP"
     Width="1050"
     Height="450"
+    d:DataContext="{d:DesignInstance Type=vm:MainViewModel,
+                                     IsDesignTimeCreatable=True}"
     dialog:DialogParticipation.Register="{Binding}"
+    Icon="/Files/Icons/TrackMyIP.ico"
     ShowIconOnTitleBar="True"
     WindowStartupLocation="CenterScreen"
-    mc:Ignorable="d" Icon="/Files/Icons/TrackMyIP.ico" >
-    <ctrl:MetroWindow.DataContext>
-        <vm:MainViewModel />
-    </ctrl:MetroWindow.DataContext>
+    mc:Ignorable="d">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200" />

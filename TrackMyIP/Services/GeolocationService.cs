@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TrackMyIP.Models;
+using TrackMyIP.Services.Interfaces;
 
 namespace TrackMyIP.Services
 {
