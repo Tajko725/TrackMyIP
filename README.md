@@ -42,7 +42,7 @@ TrackMyIP wykorzystuje następujące biblioteki:
 - [Microsoft.EntityFrameworkCore](https://learn.microsoft.com/en-us/ef/core/) - Dostęp do bazy danych w modelu ORM.
 - [Microsoft.EntityFrameworkCore.Sqlite](https://learn.microsoft.com/en-us/ef/core/providers/sqlite/?tabs=dotnet-cli) - Obsługa bazy SQLite.
 - [Microsoft.EntityFrameworkCore.Tools](https://learn.microsoft.com/en-us/ef/core/cli/dotnet) - Narzędzia CLI dla Entity Framework.
-- [Microsoft.Xaml.Behaviors.Wpf](https://www.nuget.org/packages/Microsoft.Xaml.Behaviors.Wpf) - Obsługa zachowań w WPF.
+- [CommunityToolkit.Mvvm](https://learn.microsoft.com/pl-pl/dotnet/communitytoolkit/mvvm/) - Szybka, modułowa, platformowa biblioteka MVVM, która jest oficjalnym następcą MVVMlight. Posiada Dependency Injection (Ioc), klasy RelayCommand, ObservableProperty, ObservableObject itp.
 - [Newtonsoft.Json](https://www.newtonsoft.com/json) - Przetwarzanie i parsowanie danych JSON.
 
 ## 🖥️ Instalacja i konfiguracja
