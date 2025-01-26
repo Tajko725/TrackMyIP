@@ -42,8 +42,13 @@ TrackMyIP wykorzystuje następujące biblioteki:
 - [Microsoft.EntityFrameworkCore](https://learn.microsoft.com/en-us/ef/core/) - Dostęp do bazy danych w modelu ORM.
 - [Microsoft.EntityFrameworkCore.Sqlite](https://learn.microsoft.com/en-us/ef/core/providers/sqlite/?tabs=dotnet-cli) - Obsługa bazy SQLite.
 - [Microsoft.EntityFrameworkCore.Tools](https://learn.microsoft.com/en-us/ef/core/cli/dotnet) - Narzędzia CLI dla Entity Framework.
+- [Microsoft.EntityFrameworkCore.InMemory](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.InMemory/9.0.1) - Dostawca bazy danych in-memory dla Entity Framework Core (do wykorzystania w celach testowych).
 - [CommunityToolkit.Mvvm](https://learn.microsoft.com/pl-pl/dotnet/communitytoolkit/mvvm/) - Szybka, modułowa, platformowa biblioteka MVVM, która jest oficjalnym następcą MVVMlight. Posiada Dependency Injection (Ioc), klasy RelayCommand, ObservableProperty, ObservableObject itp.
 - [Newtonsoft.Json](https://www.newtonsoft.com/json) - Przetwarzanie i parsowanie danych JSON.
+- [FluentAssertions](https://xceed.com/products/unit-testing/fluent-assertions/) - Fluent Assertions oferuje kompleksowy zestaw metod rozszerzeń, które umożliwiają naturalne wyrażanie oczekiwanych wyników testów jednostkowych TDD (programowanie sterowane testami) lub BDD (rozwój sterowany zachowaniem).
+- [FluentAssertions.Analyzers](https://github.com/fluentassertions/fluentassertions.analyzers) - Analizatory pomagające w pisaniu płynnych twierdzeń we właściwy sposób.
+- [Moq](https://github.com/devlooped/moq) - Moq to najpopularniejszy i najbardziej przyjazny framework mockingowy dla .NET.
+- [xunit](https://www.nuget.org/packages/xunit/2.9.3) - xUnit.net jest frameworkiem testowania deweloperskiego, zbudowanym w celu wsparcia Test Driven Development, z celem projektowym ekstremalnej prostoty i dostosowania do funkcji frameworka.
 
 ## 🖥️ Instalacja i konfiguracja
 
