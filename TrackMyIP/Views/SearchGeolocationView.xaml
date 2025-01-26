@@ -37,7 +37,7 @@
                 Text="{Binding AddressSearched, UpdateSourceTrigger=PropertyChanged}">
                 <i:Interaction.Triggers>
                     <i:EventTrigger EventName="PreviewKeyDown">
-                        <i:InvokeCommandAction Command="{Binding AddressSearchedKeydownCommand}" PassEventArgsToCommand="True" />
+                        <i:InvokeCommandAction Command="{Binding AddressSearchedKeydownCommandAsync}" PassEventArgsToCommand="True" />
                     </i:EventTrigger>
                 </i:Interaction.Triggers>
             </TextBox>

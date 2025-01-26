@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Http;
 using System.Windows;
 using TrackMyIP.Models;
 using TrackMyIP.Services;
@@ -38,11 +39,24 @@ namespace TrackMyIP
         {
             var services = new ServiceCollection();
 
+            // Add HttpClient
+            services.AddSingleton(provider =>
+            {
+                var client = new HttpClient()
+                {
+                    BaseAddress = new Uri("http://api.ipstack.com/")
+                };
+
+                return client;
+            });
+
             // Register services
             services.AddSingleton<GeolocationDbContext>();
             services.AddSingleton<IGeolocationService, GeolocationService>();
             services.AddSingleton<IIpStackService, IpStackService>();
             services.AddSingleton<IDialogCoordinator>(DialogCoordinator.Instance);
+            services.AddSingleton<IMessageDialogService, MessageDialogService>();
+            services.AddSingleton<IUrlNavigatorService, UrlNavigatorService>();
 
             // Register ViewModels
             services.AddSingleton<MainViewModel>();

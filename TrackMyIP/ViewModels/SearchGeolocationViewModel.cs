@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MahApps.Metro.Controls.Dialogs;
 using System.Windows.Input;
 using TrackMyIP.Models;
 using TrackMyIP.Services.Interfaces;
@@ -16,11 +15,8 @@ namespace TrackMyIP.ViewModels
     public partial class SearchGeolocationViewModel : BaseModel
     {
         #region Properties
-        /// <summary>
-        /// Gets or sets the dialog coordinator for displaying dialogs in the application.
-        /// </summary>
-        public readonly IDialogCoordinator? DialogCoordinator;
         private readonly IIpStackService? _ipStackService;
+        private readonly IMessageDialogService? _dialogService;
 
         /// <summary>
         /// Gets or sets the address or IP entered by the user for geolocation search.
@@ -52,7 +48,7 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Command for initiating a geolocation search.
         /// </summary>
-        public IRelayCommand? SearchCommand { get; private set; }
+        public IAsyncRelayCommand? SearchCommandAsync { get; private set; }
 
         /// <summary>
         /// Command for adding the retrieved geolocation data.
@@ -67,7 +63,7 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Command for handling the Enter key press during address input.
         /// </summary>
-        public IRelayCommand? AddressSearchedKeydownCommand { get; private set; }
+        public IAsyncRelayCommand? AddressSearchedKeydownCommandAsync { get; private set; }
         #endregion Commands
 
         #region Buttons
@@ -101,11 +97,13 @@ namespace TrackMyIP.ViewModels
         /// Initializes a new instance of the <see cref="SearchGeolocationViewModel" /> class with the specified dependencies.
         /// </summary>
         /// <param name="ipStackService">The service for fetching geolocation data from the ipstack API.</param>
-        /// <param name="dialogCoordinator">The dialog coordinator used for displaying dialogs in the application.</param>
-        public SearchGeolocationViewModel(IIpStackService ipStackService, IDialogCoordinator dialogCoordinator) : this()
+        /// <param name="dialogService">Service for dialogs.</param>
+        public SearchGeolocationViewModel(IIpStackService ipStackService, IMessageDialogService dialogService) : this()
         {
             _ipStackService = ipStackService;
-            DialogCoordinator = dialogCoordinator;
+            _dialogService = dialogService;
+
+            _dialogService.Initialize(this);
         }
         #endregion Constructors
 
@@ -115,10 +113,10 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeCommands()
         {
-            SearchCommand = new AsyncRelayCommand(SearchAsync, () => CanSearch);
+            SearchCommandAsync = new AsyncRelayCommand(SearchAsync, () => CanSearch);
             AddCommand = new RelayCommand<object?>(Add, _ => CanAdd);
             CloseCommand = new RelayCommand<object?>(Close);
-            AddressSearchedKeydownCommand = new AsyncRelayCommand<object?>(AddressSearchedKeydownAsync);
+            AddressSearchedKeydownCommandAsync = new AsyncRelayCommand<object?>(AddressSearchedKeydownAsync);
         }
 
         /// <summary>
@@ -126,7 +124,7 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeButtons()
         {
-            SearchButton = new ButtonInfo("Wyszukaj", SearchCommand!, toolTip: "Wyszukaj dane geolokalizacyjne.");
+            SearchButton = new ButtonInfo("Wyszukaj", SearchCommandAsync!, toolTip: "Wyszukaj dane geolokalizacyjne.");
             AddButton = new ButtonInfo("Dodaj", AddCommand!, toolTip: "Dodaj dane geolokalizacyjne.");
             CloseButton = new ButtonInfo("Zamknij", CloseCommand!, toolTip: "Zamknij okno.");
         }
@@ -160,7 +158,7 @@ namespace TrackMyIP.ViewModels
                     ? "Problem z połączeniem internetowym."
                     : ex.Message;
 
-                await MessageBoxEx.ShowMessageAsync(new MessageInfo("Odczytywanie geolokalizacji", errorMessage), this, DialogCoordinator);
+                await _dialogService!.ShowMessageAsync(new MessageInfo("Odczytywanie geolokalizacji", errorMessage));
             }
         }
 
@@ -185,25 +183,37 @@ namespace TrackMyIP.ViewModels
         }
 
         /// <summary>
-        /// Handles the Enter key press event in the address input field and triggers the search.
+        /// Handles the Enter key press event in the address input field by delegating
+        /// the action to <see cref="OnKeyPressedAsync"/> for processing specific key behaviors.
         /// </summary>
-        /// <param name="obj">The key event arguments.</param>
+        /// <param name="obj">The key event arguments passed from the UI.</param>
         private async Task AddressSearchedKeydownAsync(object? obj)
         {
             if (obj is KeyEventArgs args && args.Key == Key.Enter)
-                await SearchAsync();
+                await OnKeyPressedAsync(args.Key);
         }
 
         /// <summary>
         /// Invoked whenever the <see cref="AddressSearched"/> property value changes.
-        /// Updates the execution state of the <see cref="SearchCommand"/> command based on the new value.
+        /// Updates the execution state of the <see cref="SearchCommandAsync"/> command based on the new value.
         /// </summary>
         /// <param name="value">The new value of the <see cref="AddressSearched"/> property.</param>
         partial void OnAddressSearchedChanged(string? value)
         {
-            SearchCommand?.NotifyCanExecuteChanged();
+            SearchCommandAsync?.NotifyCanExecuteChanged();
         }
 
+        /// <summary>
+        /// Handles specific key press events and performs the associated actions.
+        /// For example, when the Enter key is pressed, it triggers the search functionality.
+        /// </summary>
+        /// <param name="key">The key that was pressed.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task OnKeyPressedAsync(Key key)
+        {
+            if (key == Key.Enter)
+                await SearchAsync();
+        }
         #endregion Methods
     }
 }

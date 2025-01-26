@@ -9,9 +9,14 @@ namespace TrackMyIP.Services
     /// Service for interacting with the ipstack API, including checking API keys,
     /// fetching geolocation data, and monitoring API usage.
     /// </summary>
-    public class IpStackService: IIpStackService
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="IpStackService"/> class.
+    /// </remarks>
+    /// <param name="httpClient">An instance of <see cref="HttpClient"/> for making HTTP requests.</param>
+    public class IpStackService(HttpClient httpClient) : IIpStackService
     {
         private const string _baseUrl = "http://api.ipstack.com/";
+        private readonly HttpClient _httpClient = httpClient;
 
         /// <summary>
         /// Checks if the provided API key is valid.
@@ -81,9 +86,7 @@ namespace TrackMyIP.Services
         private async Task<JObject> SendRequestAsync(string query)
         {
             string url = $"{_baseUrl}{query}?access_key={AppConfigHelper.GetAppSetting("IPStackApiKey")}";
-
-            using HttpClient client = new();
-            HttpResponseMessage response = await client.GetAsync(url);
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
                 throw new Exception($"HTTP Error: {response.StatusCode}");

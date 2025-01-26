@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+VisualStudioVersion = 17.12.35527.113
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrackMyIP", "TrackMyIP\TrackMyIP.csproj", "{C9C55E7D-95AF-4A17-8594-2C05638D2994}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{99F26528-D627-439A-85A2-396CFA42DDCF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{C9C55E7D-95AF-4A17-8594-2C05638D2994}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9C55E7D-95AF-4A17-8594-2C05638D2994}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9C55E7D-95AF-4A17-8594-2C05638D2994}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99F26528-D627-439A-85A2-396CFA42DDCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99F26528-D627-439A-85A2-396CFA42DDCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99F26528-D627-439A-85A2-396CFA42DDCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99F26528-D627-439A-85A2-396CFA42DDCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

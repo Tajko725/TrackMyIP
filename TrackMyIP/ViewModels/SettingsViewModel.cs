@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using MahApps.Metro.Controls.Dialogs;
-using System.Windows;
 using System.Windows.Input;
 using TrackMyIP.Models;
 using TrackMyIP.Services.Interfaces;
@@ -16,11 +14,9 @@ namespace TrackMyIP.ViewModels
     public partial class SettingsViewModel : BaseModel
     {
         #region Properties
-        /// <summary>
-        /// Gets or sets the dialog coordinator for displaying dialogs in the application.
-        /// </summary>
-        public IDialogCoordinator DialogCoordinator { get; }
         private readonly IIpStackService _ipStackService;
+        private readonly IMessageDialogService _dialogService;
+        private readonly IUrlNavigatorService _urlNavigatorService;
 
         /// <summary>
         /// Gets or sets the API key for accessing the ipstack service.
@@ -45,12 +41,12 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Command for saving settings to the application configuration file.
         /// </summary>
-        public IRelayCommand? SaveCommand { get; private set; }
+        public IAsyncRelayCommand? SaveCommandAsync { get; private set; }
 
         /// <summary>
         /// Command for validating the API key through a test request to the ipstack service.
         /// </summary>
-        public IRelayCommand? CheckApiKeyIsValidCommand { get; private set; }
+        public IAsyncRelayCommand? CheckApiKeyIsValidCommandAsync { get; private set; }
 
         /// <summary>
         /// Command for validating the API key through a test request to the ipstack service.
@@ -81,11 +77,13 @@ namespace TrackMyIP.ViewModels
         /// Initializes a new instance of the <see cref="SettingsViewModel" /> class with the specified dependencies.
         /// </summary>
         /// <param name="ipStackService">The service used for managing interactions with the ipstack API.</param>
-        /// <param name="dialogCoordinator">The dialog coordinator used for displaying dialogs in the application.</param>
-        public SettingsViewModel(IIpStackService ipStackService, IDialogCoordinator dialogCoordinator)
+        /// <param name="dialogService">Service for dialogs.</param>
+        /// <param name="urlNavigatorService">The service for navigating to specified URLs in the default web browser.</param>
+        public SettingsViewModel(IIpStackService ipStackService, IMessageDialogService dialogService, IUrlNavigatorService urlNavigatorService)
         {
             _ipStackService = ipStackService;
-            DialogCoordinator = dialogCoordinator;
+            _dialogService = dialogService;
+            _urlNavigatorService = urlNavigatorService;
 
             Initialize();
         }
@@ -101,6 +99,8 @@ namespace TrackMyIP.ViewModels
             Load(null!);
             InitializeCommands();
             InitializeButtons();
+            
+            _dialogService.Initialize(this);
         }
 
         /// <summary>
@@ -109,8 +109,8 @@ namespace TrackMyIP.ViewModels
         private void InitializeCommands()
         {
             LoadCommand = new RelayCommand<object?>(Load);
-            SaveCommand = new AsyncRelayCommand(SaveAsync, () => CanSave);
-            CheckApiKeyIsValidCommand = new AsyncRelayCommand(CheckApiKeyIsValidAsync, () => CanSave);
+            SaveCommandAsync = new AsyncRelayCommand(SaveAsync, () => CanSave);
+            CheckApiKeyIsValidCommandAsync = new AsyncRelayCommand(CheckApiKeyIsValidAsync, () => CanSave);
             GoToWwwCommand = new RelayCommand<object?>(GoToWww);
         }
 
@@ -121,7 +121,7 @@ namespace TrackMyIP.ViewModels
         private void GoToWww(object? obj)
         {
             if (obj is string url)
-                UrlNavigator.OpenUrl(url);
+                _urlNavigatorService.OpenUrl(url);
         }
 
         /// <summary>
@@ -130,8 +130,8 @@ namespace TrackMyIP.ViewModels
         private void InitializeButtons()
         {
             LoadButton = new ButtonInfo("Wczytaj", LoadCommand!, toolTip: "Wczytaj ustawienia.");
-            SaveButton = new ButtonInfo("Zapisz", SaveCommand!, toolTip: "Zapisz ustawienia.");
-            CheckApiKeyIsValidButton = new ButtonInfo("Sprawdź", CheckApiKeyIsValidCommand!, toolTip: "Sprawdź poprawność klucza API poprzed pojedyncze zapytanie o www.google.pl.");
+            SaveButton = new ButtonInfo("Zapisz", SaveCommandAsync!, toolTip: "Zapisz ustawienia.");
+            CheckApiKeyIsValidButton = new ButtonInfo("Sprawdź", CheckApiKeyIsValidCommandAsync!, toolTip: "Sprawdź poprawność klucza API poprzed pojedyncze zapytanie o www.google.pl.");
         }
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace TrackMyIP.ViewModels
         {
             AppConfigHelper.UpdateAppSetting("IPStackApiKey", IpStackApiKey!);
 
-            await ShowMessageAsync("Zapis ustawień", "Ustawienia zapisane pomyślnie.");
+            await _dialogService.ShowMessageAsync("Zapis ustawień", "Ustawienia zapisane pomyślnie.");
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace TrackMyIP.ViewModels
             try
             {
                 string resultMessage = await _ipStackService.ValidateApiKeyAsync();
-                await ShowMessageAsync("Sprawdzenie poprawności klucza API", resultMessage);
+                await _dialogService.ShowMessageAsync("Sprawdzenie poprawności klucza API", resultMessage);
             }
             catch (Exception ex)
             {
@@ -170,30 +170,19 @@ namespace TrackMyIP.ViewModels
                     ? "Problem z połączeniem internetowym."
                     : $"Błąd podczas odczytywania informacji:\n{ex.Message}";
 
-                await ShowMessageAsync("Sprawdzenie poprawności klucza API", errorMessage);
+                await _dialogService.ShowMessageAsync("Sprawdzenie poprawności klucza API", errorMessage);
             }
         }
 
         /// <summary>
-        /// Displays a message dialog asynchronously using the specified dialog coordinator.
-        /// </summary>
-        /// <param name="messageInfo">The message details, including title and content, to display in the dialog.</param>
-        /// <param name="dataContext">The data context of the current window, typically used for binding.</param>
-        /// <param name="dialogCoordinator">The dialog coordinator used to display the dialog.</param>
-        /// <returns>A task representing the asynchronous operation.</returns>
-        private async Task ShowMessageAsync(string title, string message)
-            => await MessageBoxEx.ShowMessageAsync(new MessageInfo(title, message), Application.Current.MainWindow.DataContext, DialogCoordinator);
-
-
-        /// <summary>
         /// Invoked whenever the <see cref="IpStackApiKey"/> property value changes.
-        /// Updates the execution state of the <see cref="SaveCommand"/> command based on the new value.
+        /// Updates the execution state of the <see cref="SaveCommandAsync"/> command based on the new value.
         /// </summary>
         /// <param name="value">The new value of the <see cref="IpStackApiKey"/> property.</param>
         partial void OnIpStackApiKeyChanged(string? value)
         {
-            SaveCommand?.NotifyCanExecuteChanged();
-            CheckApiKeyIsValidCommand?.NotifyCanExecuteChanged();
+            SaveCommandAsync?.NotifyCanExecuteChanged();
+            CheckApiKeyIsValidCommandAsync?.NotifyCanExecuteChanged();
         }
         #endregion Methods
     }

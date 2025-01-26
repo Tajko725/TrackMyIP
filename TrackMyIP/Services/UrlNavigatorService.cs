@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
-using System.Windows;
+using TrackMyIP.Services.Interfaces;
 
-namespace TrackMyIP.Models
+namespace TrackMyIP.Services
 {
     /// <summary>
     /// Provides functionality for navigating to a specified URL in the default web browser.
+    /// Implements the <see cref="IUrlNavigatorService"/> interface.
     /// </summary>
-    public static class UrlNavigator
+    public class UrlNavigatorService : IUrlNavigatorService
     {
         /// <summary>
         /// Opens the specified URL in the default web browser.
@@ -14,13 +15,13 @@ namespace TrackMyIP.Models
         /// <param name="url">The URL to open. Must be a valid, non-empty string starting with "http://" or "https://".</param>
         /// <exception cref="ArgumentException">Thrown when the provided URL is null, empty, or invalid.</exception>
         /// <exception cref="Exception">Thrown when an error occurs while attempting to open the URL.</exception>
-        public static void OpenUrl(string url)
+        public void OpenUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentException("URL nie może być nullem lub pusty.", nameof(url));
 
             if (!IsValidUrl(url))
-                throw new ArgumentException("Niepoprawny URL", nameof(url));
+                throw new ArgumentException("Niepoprawny URL.", nameof(url));
 
             try
             {
@@ -43,7 +44,7 @@ namespace TrackMyIP.Models
         /// <param name="url">The URL string to validate.</param>
         /// <returns>Returns <c>true</c> if the URL is valid, absolute, and uses the "http" or "https" scheme;
         /// otherwise, <c>false</c>.</returns>
-        private static bool IsValidUrl(string url)
+        private bool IsValidUrl(string url)
         {
             return Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
