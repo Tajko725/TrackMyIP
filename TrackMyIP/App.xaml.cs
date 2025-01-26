@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using MahApps.Metro.Controls.Dialogs;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
 using System.Net.Http;
 using System.Windows;
 using TrackMyIP.Models;
@@ -51,7 +53,12 @@ namespace TrackMyIP
             });
 
             // Register services
-            services.AddSingleton<GeolocationDbContext>();
+            services.AddDbContext<GeolocationDbContext>(options =>
+            {
+                string dbPath = Path.Combine(AppContext.BaseDirectory, "TrackMyIP.db");
+                options.UseSqlite($"Data Source={dbPath}");
+            });
+
             services.AddSingleton<IGeolocationService, GeolocationService>();
             services.AddSingleton<IIpStackService, IpStackService>();
             services.AddSingleton<IDialogCoordinator>(DialogCoordinator.Instance);
