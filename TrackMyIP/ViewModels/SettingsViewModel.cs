@@ -1,4 +1,6 @@
-﻿using MahApps.Metro.Controls.Dialogs;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MahApps.Metro.Controls.Dialogs;
 using System.Windows;
 using System.Windows.Input;
 using TrackMyIP.Models;
@@ -11,7 +13,7 @@ namespace TrackMyIP.ViewModels
     /// Provides properties, commands, and methods for loading, saving, and validating settings.
     /// Inherits from <see cref="BaseModel"/>.
     /// </summary>
-    public class SettingsViewModel : BaseModel
+    public partial class SettingsViewModel : BaseModel
     {
         #region Properties
         /// <summary>
@@ -20,28 +22,17 @@ namespace TrackMyIP.ViewModels
         public IDialogCoordinator DialogCoordinator { get; }
         private readonly IIpStackService _ipStackService;
 
-        private string? _ipStackApiKey;
         /// <summary>
         /// Gets or sets the API key for accessing the ipstack service.
         /// </summary>
-        public string? IpStackApiKey
-        {
-            get => _ipStackApiKey;
-            set
-            {
-                if (_ipStackApiKey != value)
-                {
-                    _ipStackApiKey = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        [ObservableProperty]
+        private string? _ipStackApiKey;
 
         /// <summary>
         /// Gets a value indicating whether the settings can be saved.
         /// The API key must not be null or whitespace.
         /// </summary>
-        private bool CanSave => !string.IsNullOrWhiteSpace(_ipStackApiKey);
+        private bool CanSave => !string.IsNullOrWhiteSpace(IpStackApiKey);
 
         #endregion Properties
 
@@ -49,17 +40,17 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Command for loading settings from the application configuration file.
         /// </summary>
-        public ICommand? LoadCommand { get; private set; }
+        public IRelayCommand? LoadCommand { get; private set; }
 
         /// <summary>
         /// Command for saving settings to the application configuration file.
         /// </summary>
-        public ICommand? SaveCommand { get; private set; }
+        public IRelayCommand? SaveCommand { get; private set; }
 
         /// <summary>
         /// Command for validating the API key through a test request to the ipstack service.
         /// </summary>
-        public ICommand? CheckApiKeyIsValidCommand { get; private set; }
+        public IRelayCommand? CheckApiKeyIsValidCommand { get; private set; }
 
         /// <summary>
         /// Command for validating the API key through a test request to the ipstack service.
@@ -117,10 +108,10 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeCommands()
         {
-            LoadCommand = new RelayCommand(Load);
-            SaveCommand = new RelayCommand(async _ => await SaveAsync(), x => CanSave);
-            CheckApiKeyIsValidCommand = new RelayCommand(CheckApiKeyIsValidAsync, x => CanSave);
-            GoToWwwCommand = new RelayCommand(GoToWww);
+            LoadCommand = new RelayCommand<object?>(Load);
+            SaveCommand = new AsyncRelayCommand(SaveAsync, () => CanSave);
+            CheckApiKeyIsValidCommand = new AsyncRelayCommand(CheckApiKeyIsValidAsync, () => CanSave);
+            GoToWwwCommand = new RelayCommand<object?>(GoToWww);
         }
 
         /// <summary>
@@ -166,8 +157,7 @@ namespace TrackMyIP.ViewModels
         /// Validates the API key by making a test request to the ipstack service.
         /// Displays the result in a dialog.
         /// </summary>
-        /// <param name="obj">Optional parameter for the command.</param>
-        private async void CheckApiKeyIsValidAsync(object? obj)
+        private async Task CheckApiKeyIsValidAsync()
         {
             try
             {
@@ -193,7 +183,18 @@ namespace TrackMyIP.ViewModels
         /// <returns>A task representing the asynchronous operation.</returns>
         private async Task ShowMessageAsync(string title, string message)
             => await MessageBoxEx.ShowMessageAsync(new MessageInfo(title, message), Application.Current.MainWindow.DataContext, DialogCoordinator);
-        
+
+
+        /// <summary>
+        /// Invoked whenever the <see cref="IpStackApiKey"/> property value changes.
+        /// Updates the execution state of the <see cref="SaveCommand"/> command based on the new value.
+        /// </summary>
+        /// <param name="value">The new value of the <see cref="IpStackApiKey"/> property.</param>
+        partial void OnIpStackApiKeyChanged(string? value)
+        {
+            SaveCommand?.NotifyCanExecuteChanged();
+            CheckApiKeyIsValidCommand?.NotifyCanExecuteChanged();
+        }
         #endregion Methods
     }
 }

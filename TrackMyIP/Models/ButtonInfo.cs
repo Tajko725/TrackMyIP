@@ -1,4 +1,4 @@
-﻿using System.Windows.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 
 namespace TrackMyIP.Models
 {
@@ -10,7 +10,7 @@ namespace TrackMyIP.Models
     /// <param name="command">The command executed when the button is clicked.</param>
     /// <param name="commandParameter">An optional parameter passed to the command when executed.</param>
     /// <param name="toolTip">The tooltip displayed when hovering over the button.</param>
-    public class ButtonInfo(string content, ICommand command, object? commandParameter = null, string? toolTip = null) : BaseModel
+    public class ButtonInfo(string content, IRelayCommand command, object? commandParameter = null, string? toolTip = null) : BaseModel
     {
         /// <summary>
         /// Gets the text displayed on the button.
@@ -20,7 +20,7 @@ namespace TrackMyIP.Models
         /// <summary>
         /// Gets the command executed when the button is clicked.
         /// </summary>
-        public ICommand Command { get; private set; } = command;
+        public IRelayCommand Command { get; private set; } = command;
 
         /// <summary>
         /// Gets the optional parameter passed to the command when executed.

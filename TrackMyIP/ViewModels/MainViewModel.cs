@@ -1,10 +1,10 @@
-﻿using MahApps.Metro.Controls.Dialogs;
-using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.Input;
+using MahApps.Metro.Controls.Dialogs;
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Input;
 using TrackMyIP.Models;
-using TrackMyIP.Services;
 using TrackMyIP.Services.Interfaces;
 using TrackMyIP.Views;
 
@@ -14,7 +14,7 @@ namespace TrackMyIP.ViewModels
     /// Represents the main view model for the application.
     /// Provides properties, commands, and methods to manage the application state, geolocation data, and user interactions.
     /// Inherits from <see cref="BaseModel"/>.
-    public class MainViewModel : BaseModel
+    public partial class MainViewModel : BaseModel
     {
         #region Properties
         private bool _isBusy = false;
@@ -30,57 +30,24 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         public required ObservableCollection<GeolocationData> Geolocations { get; set; } = [];
 
-        private GeolocationData? _selectedGeolocation;
         /// <summary>
         /// Gets or sets the currently selected geolocation data.
         /// </summary>
-        public GeolocationData? SelectedGeolocation
-        {
-            get => _selectedGeolocation;
-            set
-            {
-                if (_selectedGeolocation != value)
-                {
+        [ObservableProperty]
+        private GeolocationData? _selectedGeolocation;
 
-                    _selectedGeolocation = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        private Visibility _showGeolocationsVisibility = Visibility.Visible;
         /// <summary>
         /// Gets or sets the visibility state for the geolocation view.
         /// </summary>
-        public Visibility ShowGeolocationsVisibility
-        {
-            get => _showGeolocationsVisibility;
-            set
-            {
-                if (value != _showGeolocationsVisibility)
-                {
-                    _showGeolocationsVisibility = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        [ObservableProperty]
+        private Visibility _showGeolocationsVisibility = Visibility.Visible;
 
-        private Visibility _showSettingsVisibility = Visibility.Collapsed;
         /// <summary>
         /// Gets or sets the visibility state for the settings view.
         /// </summary>
-        public Visibility ShowSettingsVisibility
-        {
-            get => _showSettingsVisibility;
-            set
-            {
-                if (value != _showSettingsVisibility)
-                {
-                    _showSettingsVisibility = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        [ObservableProperty]
+
+        private Visibility _showSettingsVisibility = Visibility.Collapsed;
 
         /// <summary>
         /// Gets or sets the view model for the settings view.
@@ -92,37 +59,37 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Command for showing the geolocation search view.
         /// </summary>
-        public ICommand? ShowSearchingGeolocationCommand { get; private set; }
+        public IRelayCommand? ShowSearchingGeolocationCommand { get; private set; }
 
         /// <summary>
         /// Command for showing the geolocation list view.
         /// </summary>
-        public ICommand? ShowGeolocationsCommand { get; private set; }
+        public IRelayCommand? ShowGeolocationsCommand { get; private set; }
 
         /// <summary>
         /// Command for showing the settings view.
         /// </summary>
-        public ICommand? ShowSettingsCommand { get; private set; }
+        public IRelayCommand? ShowSettingsCommand { get; private set; }
 
         /// <summary>
         /// Command for closing the application.
         /// </summary>
-        public ICommand? CloseCommand { get; private set; }
+        public IRelayCommand? CloseCommand { get; private set; }
 
         /// <summary>
         /// Command for updating the selected geolocation.
         /// </summary>
-        public ICommand? UpdateGeolocationCommand { get; private set; }
+        public IRelayCommand? UpdateGeolocationCommand { get; private set; }
 
         /// <summary>
         /// Command for deleting the selected geolocation.
         /// </summary>
-        public ICommand? DeleteGeolocationCommand { get; private set; }
+        public IRelayCommand? DeleteGeolocationCommand { get; private set; }
 
         /// <summary>
         /// Command for refreshing the list of geolocations.
         /// </summary>
-        public ICommand? RefreshGeoocationsCommand { get; private set; }
+        public IRelayCommand? RefreshGeoocationsCommand { get; private set; }
         #endregion Commands
 
         #region Buttons
@@ -209,14 +176,14 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeCommands()
         {
-            ShowSearchingGeolocationCommand = new RelayCommand(ShowShowSearchingGeolocation);
-            ShowGeolocationsCommand = new RelayCommand(ShowGeolocations, x => !_isBusy);
-            ShowSettingsCommand = new RelayCommand(ShowSettings, x => !_isBusy);
-            CloseCommand = new RelayCommand(Close);
+            ShowSearchingGeolocationCommand = new RelayCommand<object>(ShowShowSearchingGeolocation);
+            ShowGeolocationsCommand = new RelayCommand<object>(ShowGeolocations, x => !_isBusy);
+            ShowSettingsCommand = new RelayCommand<object>(ShowSettings, x => !_isBusy);
+            CloseCommand = new RelayCommand<object>(Close);
 
-            UpdateGeolocationCommand = new RelayCommand(async _ => await EditLocationAsync(), _ => SelectedGeolocation != null && !_isBusy);
-            DeleteGeolocationCommand = new RelayCommand(async _ => await DeleteGeolocationAsync(), _ => SelectedGeolocation != null && !_isBusy);
-            RefreshGeoocationsCommand = new RelayCommand(async _ => await LoadGeolocationsAsync(), _ => !_isBusy);
+            UpdateGeolocationCommand = new AsyncRelayCommand(EditLocationAsync, () => SelectedGeolocation != null && !_isBusy);
+            DeleteGeolocationCommand = new AsyncRelayCommand(DeleteGeolocationAsync, () => SelectedGeolocation != null && !_isBusy);
+            RefreshGeoocationsCommand = new AsyncRelayCommand(LoadGeolocationsAsync, () => !_isBusy);
         }
 
         /// <summary>
@@ -251,7 +218,7 @@ namespace TrackMyIP.ViewModels
         /// <param name="obj">Optional parameter for the command.</param>
         private async void ShowShowSearchingGeolocation(object? obj)
         {
-            var sgv = ServiceLocator.Services.GetService<SearchGeolocationView>();
+            var sgv = Ioc.Default.GetService<SearchGeolocationView>();
             if (sgv!.ShowDialog()!.Value && sgv.DataContext is SearchGeolocationViewModel vm)
             {
                 if (Geolocations.Any(x => x.IP == vm.GeolocationData!.IP))
@@ -358,6 +325,17 @@ namespace TrackMyIP.ViewModels
                 Geolocations.Remove(itemToRemove);
 
             _isBusy = false;
+        }
+
+        /// <summary>
+        /// Invoked whenever the <see cref="SelectedGeolocation"/> property value changes.
+        /// Updates the execution state of commands dependent on the selected geolocation.
+        /// </summary>
+        /// <param name="value">The new value of the <see cref="SelectedGeolocation"/> property.</param>
+        partial void OnSelectedGeolocationChanged(GeolocationData? value)
+        {
+            UpdateGeolocationCommand?.NotifyCanExecuteChanged();
+            DeleteGeolocationCommand?.NotifyCanExecuteChanged();
         }
         #endregion Methods
     }

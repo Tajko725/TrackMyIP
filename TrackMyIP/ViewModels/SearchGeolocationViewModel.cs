@@ -1,8 +1,8 @@
-﻿using MahApps.Metro.Controls.Dialogs;
-using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MahApps.Metro.Controls.Dialogs;
 using System.Windows.Input;
 using TrackMyIP.Models;
-using TrackMyIP.Services;
 using TrackMyIP.Services.Interfaces;
 using TrackMyIP.Views;
 
@@ -13,7 +13,7 @@ namespace TrackMyIP.ViewModels
     /// Provides properties, commands, and methods to manage the search process and user interactions.
     /// Inherits from <see cref="BaseModel"/>.
     /// </summary>
-    public class SearchGeolocationViewModel : BaseModel
+    public partial class SearchGeolocationViewModel : BaseModel
     {
         #region Properties
         /// <summary>
@@ -22,39 +22,17 @@ namespace TrackMyIP.ViewModels
         public readonly IDialogCoordinator? DialogCoordinator;
         private readonly IIpStackService? _ipStackService;
 
-        private string? _addressSearched;
         /// <summary>
         /// Gets or sets the address or IP entered by the user for geolocation search.
         /// </summary>
-        public string? AddressSearched
-        {
-            get => _addressSearched;
-            set
-            {
-                if (_addressSearched != value)
-                {
-                    _addressSearched = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        [ObservableProperty]
+        private string? _addressSearched;
 
-        private GeolocationData? _geolocationData;
         /// <summary>
         /// Gets or sets the geolocation data retrieved from the search.
         /// </summary>
-        public GeolocationData? GeolocationData
-        {
-            get => _geolocationData;
-            set
-            {
-                if (_geolocationData != value)
-                {
-                    _geolocationData = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
+        [ObservableProperty]
+        private GeolocationData? _geolocationData;
 
         /// <summary>
         /// Gets a value indicating whether the search command can be executed.
@@ -74,22 +52,22 @@ namespace TrackMyIP.ViewModels
         /// <summary>
         /// Command for initiating a geolocation search.
         /// </summary>
-        public ICommand? SearchCommand { get; private set; }
+        public IRelayCommand? SearchCommand { get; private set; }
 
         /// <summary>
         /// Command for adding the retrieved geolocation data.
         /// </summary>
-        public ICommand? AddCommand { get; private set; }
+        public IRelayCommand? AddCommand { get; private set; }
 
         /// <summary>
         /// Command for closing the search window.
         /// </summary>
-        public ICommand? CloseCommand { get; private set; }
+        public IRelayCommand? CloseCommand { get; private set; }
 
         /// <summary>
         /// Command for handling the Enter key press during address input.
         /// </summary>
-        public ICommand? AddressSearchedKeydownCommand { get; private set; }
+        public IRelayCommand? AddressSearchedKeydownCommand { get; private set; }
         #endregion Commands
 
         #region Buttons
@@ -137,10 +115,10 @@ namespace TrackMyIP.ViewModels
         /// </summary>
         private void InitializeCommands()
         {
-            SearchCommand = new RelayCommand(async _ => await SearchAsync(), _ => CanSearch);
-            AddCommand = new RelayCommand(Add, _ => CanAdd);
-            CloseCommand = new RelayCommand(Close);
-            AddressSearchedKeydownCommand = new RelayCommand(AddressSearchedKeydownAsync);
+            SearchCommand = new AsyncRelayCommand(SearchAsync, () => CanSearch);
+            AddCommand = new RelayCommand<object?>(Add, _ => CanAdd);
+            CloseCommand = new RelayCommand<object?>(Close);
+            AddressSearchedKeydownCommand = new AsyncRelayCommand<object?>(AddressSearchedKeydownAsync);
         }
 
         /// <summary>
@@ -174,6 +152,7 @@ namespace TrackMyIP.ViewModels
             {
                 GeolocationData = await _ipStackService!.FetchLocationAsync(AddressSearched);
                 OnPropertyChanged(nameof(GeolocationData));
+                AddCommand?.NotifyCanExecuteChanged();
             }
             catch (Exception ex)
             {
@@ -209,10 +188,20 @@ namespace TrackMyIP.ViewModels
         /// Handles the Enter key press event in the address input field and triggers the search.
         /// </summary>
         /// <param name="obj">The key event arguments.</param>
-        private async void AddressSearchedKeydownAsync(object? obj)
+        private async Task AddressSearchedKeydownAsync(object? obj)
         {
             if (obj is KeyEventArgs args && args.Key == Key.Enter)
                 await SearchAsync();
+        }
+
+        /// <summary>
+        /// Invoked whenever the <see cref="AddressSearched"/> property value changes.
+        /// Updates the execution state of the <see cref="SearchCommand"/> command based on the new value.
+        /// </summary>
+        /// <param name="value">The new value of the <see cref="AddressSearched"/> property.</param>
+        partial void OnAddressSearchedChanged(string? value)
+        {
+            SearchCommand?.NotifyCanExecuteChanged();
         }
 
         #endregion Methods

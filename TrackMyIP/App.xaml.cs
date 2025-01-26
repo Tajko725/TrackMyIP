@@ -1,6 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using MahApps.Metro.Controls.Dialogs;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
+using TrackMyIP.Models;
 using TrackMyIP.Services;
+using TrackMyIP.Services.Interfaces;
+using TrackMyIP.ViewModels;
 using TrackMyIP.Views;
 
 namespace TrackMyIP
@@ -18,8 +23,38 @@ namespace TrackMyIP
         {
             base.OnStartup(e);
 
-            var mainView = ServiceLocator.Services.GetRequiredService<MainView>();
+            // Configure Dependency Injection services
+            ConfigureServices();
+
+            var mainView = Ioc.Default.GetRequiredService<MainView>();
             mainView.Show();
+        }
+
+        /// <summary>
+        /// Configures the Dependency Injection services for the application.
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
+        private void ConfigureServices()
+        {
+            var services = new ServiceCollection();
+
+            // Register services
+            services.AddSingleton<GeolocationDbContext>();
+            services.AddSingleton<IGeolocationService, GeolocationService>();
+            services.AddSingleton<IIpStackService, IpStackService>();
+            services.AddSingleton<IDialogCoordinator>(DialogCoordinator.Instance);
+
+            // Register ViewModels
+            services.AddSingleton<MainViewModel>();
+            services.AddTransient<SearchGeolocationViewModel>();
+            services.AddTransient<SettingsViewModel>();
+
+            // Register Views
+            services.AddSingleton<MainView>();
+            services.AddTransient<SearchGeolocationView>();
+
+            // Assign the configuration to Ioc.Default
+            Ioc.Default.ConfigureServices(services.BuildServiceProvider());
         }
 
         /// <summary>
@@ -28,7 +63,7 @@ namespace TrackMyIP
         /// <param name="e">Provides data for the <see cref="ExitEventArgs"/> event.</param>
         protected override void OnExit(ExitEventArgs e)
         {
-            ServiceLocator.Dispose();
+            (Ioc.Default.GetRequiredService<IServiceProvider>() as IDisposable)?.Dispose();
             base.OnExit(e);
         }
     }
