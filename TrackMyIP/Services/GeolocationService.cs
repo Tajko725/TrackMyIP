@@ -10,17 +10,16 @@ namespace TrackMyIP.Services
     /// </summary>
     public class GeolocationService : IGeolocationService
     {
-        private readonly GeolocationDbContext _context;
+        private readonly IDbContextFactory<GeolocationDbContext> _contextFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GeolocationService"/> class.
         /// Ensures that the database is created if it does not already exist.
         /// </summary>
         /// <param name="context">The database context for geolocation data.</param>
-        public GeolocationService(GeolocationDbContext context)
+        public GeolocationService(IDbContextFactory<GeolocationDbContext> context)
         {
-            _context = context;
-            _context.Database.EnsureCreated();
+            _contextFactory = context;
         }
 
         /// <summary>
@@ -28,7 +27,10 @@ namespace TrackMyIP.Services
         /// </summary>
         /// <returns>A list of <see cref="GeolocationData"/> objects.</returns>
         public async Task<List<GeolocationData>> GetAllAsync()
-            => await _context.Geolocations.ToListAsync();
+        {
+            using var cont = _contextFactory.CreateDbContext();
+            return await cont.Geolocations.ToListAsync();
+        }
 
         /// <summary>
         /// Adds a new geolocation entry to the database.
@@ -37,8 +39,9 @@ namespace TrackMyIP.Services
         /// <returns>A task representing the asynchronous operation.</returns>
         public async Task AddAsync(GeolocationData data)
         {
-            await _context.Geolocations.AddAsync(data);
-            await _context.SaveChangesAsync();
+            using var cont = _contextFactory.CreateDbContext();
+            await cont.Geolocations.AddAsync(data);
+            await cont.SaveChangesAsync();
         }
 
         /// <summary>
@@ -48,7 +51,8 @@ namespace TrackMyIP.Services
         /// <returns>A task representing the asynchronous operation.</returns>
         public async Task UpdateAsync(GeolocationData data)
         {
-            var existing = await _context.Geolocations.FindAsync(data.Id);
+            using var cont = _contextFactory.CreateDbContext();
+            var existing = await cont.Geolocations.FindAsync(data.Id);
             if (existing != null)
             {
                 existing.IP = data.IP;
@@ -58,7 +62,7 @@ namespace TrackMyIP.Services
                 existing.Latitude = data.Latitude;
                 existing.Longitude = data.Longitude;
 
-                await _context.SaveChangesAsync();
+                await cont.SaveChangesAsync();
             }
         }
 
@@ -69,11 +73,13 @@ namespace TrackMyIP.Services
         /// <returns>A task representing the asynchronous operation.</returns>
         public async Task DeleteAsync(int id)
         {
-            var existing = await _context.Geolocations.FindAsync(id);
+            using var cont = _contextFactory.CreateDbContext();
+            var existing = await cont.Geolocations.FindAsync(id);
+
             if (existing != null)
             {
-                _context.Geolocations.Remove(existing);
-                await _context.SaveChangesAsync();
+                cont.Geolocations.Remove(existing);
+                await cont.SaveChangesAsync();
             }
         }
     }

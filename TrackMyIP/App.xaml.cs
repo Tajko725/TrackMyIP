@@ -53,7 +53,7 @@ namespace TrackMyIP
             });
 
             // Register services
-            services.AddDbContext<GeolocationDbContext>(options =>
+            services.AddPooledDbContextFactory<GeolocationDbContext>(options =>
             {
                 string dbPath = Path.Combine(AppContext.BaseDirectory, "TrackMyIP.db");
                 options.UseSqlite($"Data Source={dbPath}");

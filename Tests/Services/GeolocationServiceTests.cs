@@ -1,13 +1,14 @@
 ﻿using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using TrackMyIP.Models;
 using TrackMyIP.Services;
 
 namespace Tests.Services
 {
-    public class GeolocationServiceTests : IDisposable
+    public class GeolocationServiceTests
     {
-        private readonly GeolocationDbContext _geolocationDbContext;
+        private readonly IDbContextFactory<GeolocationDbContext> _dbContextFactory;
         private readonly GeolocationService _geolocationService;
 
         public GeolocationServiceTests()
@@ -16,8 +17,8 @@ namespace Tests.Services
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Unique database for every test
                 .Options;
 
-            _geolocationDbContext = new GeolocationDbContext(options);
-            _geolocationService = new GeolocationService(_geolocationDbContext);
+            _dbContextFactory = new PooledDbContextFactory<GeolocationDbContext>(options);
+            _geolocationService = new GeolocationService(_dbContextFactory);
         }
 
         [Fact]
@@ -60,9 +61,9 @@ namespace Tests.Services
             await _geolocationService.AddAsync(geolocationData);
 
             // Assert
-            var firstData = _geolocationDbContext.Geolocations.FirstOrDefault();
-            firstData.Should().NotBeNull();
-            firstData.Should().BeEquivalentTo(geolocationData);
+            var datas = await _geolocationService.GetAllAsync();
+            datas.Should().ContainSingle();
+            datas.First().Should().BeEquivalentTo(geolocationData);
         }
 
         [Fact]
@@ -78,18 +79,16 @@ namespace Tests.Services
                 Longitude = 1.1
             };
 
-            await _geolocationDbContext.Geolocations.AddAsync(geolocationData);
-            await _geolocationDbContext.SaveChangesAsync();
-
+            await _geolocationService.AddAsync(geolocationData);
             geolocationData.IP = "1.1.1.2";
 
             // Act
             await _geolocationService.UpdateAsync(geolocationData);
 
             // Assert
-            var updatedData = await _geolocationDbContext.Geolocations.FindAsync(geolocationData.Id);
-            updatedData.Should().NotBeNull();
-            updatedData.IP.Should().Be("1.1.1.2");
+            var datas = await _geolocationService.GetAllAsync();
+            datas.Should().HaveCount(1);
+            datas.First().IP.Should().Be("1.1.1.2");
         }
 
         [Fact]
@@ -105,20 +104,15 @@ namespace Tests.Services
                 Longitude = 1.1
             };
 
-            await _geolocationDbContext.Geolocations.AddAsync(geolocationData);
-            await _geolocationDbContext.SaveChangesAsync();
+            await _geolocationService.AddAsync(geolocationData);
 
             // Act
             await _geolocationService.DeleteAsync(geolocationData.Id);
 
             // Assert
-            var deletedData = await _geolocationDbContext.Geolocations.FindAsync(geolocationData.Id);
-            deletedData.Should().BeNull();
-        }
-
-        public void Dispose()
-        {
-            _geolocationDbContext.Dispose();
+            var datas = await _geolocationService.GetAllAsync();
+            datas.Should().BeEmpty();
+            datas.Should().NotContainEquivalentOf(geolocationData);
         }
     }
 }
