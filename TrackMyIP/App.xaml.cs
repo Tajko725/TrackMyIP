@@ -29,8 +29,22 @@ namespace TrackMyIP
             // Configure Dependency Injection services
             ConfigureServices();
 
-            var mainView = Ioc.Default.GetRequiredService<MainView>();
-            mainView.Show();
+            try
+            {
+                // Apply database migration
+                using var scope = Ioc.Default.GetRequiredService<IServiceProvider>().CreateScope();
+                var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<GeolocationDbContext>>();
+                using var dbContext = dbContextFactory.CreateDbContext();
+                dbContext.Database.Migrate();
+
+                var mainView = Ioc.Default.GetRequiredService<MainView>();
+                mainView.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Wystąpił błąd podczas uruchamiania aplikacji: {ex.Message}", "Start aplikacji", MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown();
+            }
         }
 
         /// <summary>

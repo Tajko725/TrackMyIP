@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.IO;
+using TrackMyIP.Models.Database;
 
 namespace TrackMyIP.Models
 {
@@ -27,8 +27,8 @@ namespace TrackMyIP.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                string dbPath = Path.Combine(AppContext.BaseDirectory, "TrackMyIP.db");
-                optionsBuilder.UseSqlite($"Data Source={dbPath}");
+                string dbPath = DatabaseConfig.GetDatabasePath();
+                optionsBuilder.UseSqlite(dbPath);
             }
         }
 
