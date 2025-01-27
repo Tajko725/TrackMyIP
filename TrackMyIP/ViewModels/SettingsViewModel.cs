@@ -19,6 +19,18 @@ namespace TrackMyIP.ViewModels
         private readonly IUrlNavigatorService _urlNavigatorService;
 
         /// <summary>
+        /// Gets or sets a value indicating whether any property in the view model has been modified.
+        /// This property is set to <c>true</c> whenever a property is updated,
+        /// and set to <c>false</c> after saving or loading the settings.
+        /// </summary>
+        /// <remarks>
+        /// Used to track changes in the view model to prompt the user or perform specific actions
+        /// when unsaved changes exist.
+        /// </remarks>
+        [ObservableProperty]
+        private bool _isChanged;
+
+        /// <summary>
         /// Gets or sets the API key for accessing the ipstack service.
         /// </summary>
         [ObservableProperty]
@@ -141,6 +153,8 @@ namespace TrackMyIP.ViewModels
         private void Load(object? obj)
         {
             IpStackApiKey = AppConfigHelper.GetAppSetting("IPStackApiKey");
+
+            IsChanged = false;
         }
 
         /// <summary>
@@ -151,6 +165,8 @@ namespace TrackMyIP.ViewModels
             AppConfigHelper.UpdateAppSetting("IPStackApiKey", IpStackApiKey!);
 
             await _dialogService.ShowMessageAsync("Zapis ustawień", "Ustawienia zapisane pomyślnie.");
+
+            IsChanged = false;
         }
 
         /// <summary>
@@ -161,6 +177,15 @@ namespace TrackMyIP.ViewModels
         {
             try
             {
+                if(IsChanged)
+                {
+                    var result = await _dialogService.ShowMessageAsync("Sprawdzenie poprawności klucza API", "Wprowadzono zmiany, zapisz zmiany i spróbuj ponownie. Zapisać?", MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative);
+                    if (result == MahApps.Metro.Controls.Dialogs.MessageDialogResult.Negative)
+                        return;
+
+                    await SaveAsync();
+                }
+
                 string resultMessage = await _ipStackService.ValidateApiKeyAsync();
                 await _dialogService.ShowMessageAsync("Sprawdzenie poprawności klucza API", resultMessage);
             }
@@ -183,6 +208,7 @@ namespace TrackMyIP.ViewModels
         {
             SaveCommandAsync?.NotifyCanExecuteChanged();
             CheckApiKeyIsValidCommandAsync?.NotifyCanExecuteChanged();
+            _isChanged = true;
         }
         #endregion Methods
     }

@@ -112,6 +112,7 @@ namespace Tests.ViewModels
                 .Setup(x => x.ShowMessageAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.FromResult(MessageDialogResult.Affirmative));
             _settingsViewModel.IpStackApiKey = "valid-api-key";
+            _settingsViewModel.IsChanged = false;
 
             // Act
             await _settingsViewModel.CheckApiKeyIsValidCommandAsync!.ExecuteAsync(null);
