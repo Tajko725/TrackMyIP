@@ -169,7 +169,7 @@ namespace TrackMyIP.ViewModels
         private void Add(object? obj)
         {
             if (obj is SearchGeolocationView sgv)
-                sgv.DialogResult = true;
+                Closing(sgv, true);
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace TrackMyIP.ViewModels
         private void Close(object? obj)
         {
             if (obj is SearchGeolocationView sgv)
-                sgv.DialogResult = false;
+                Closing(sgv, false);
         }
 
         /// <summary>
@@ -213,6 +213,19 @@ namespace TrackMyIP.ViewModels
         {
             if (key == Key.Enter)
                 await SearchAsync();
+        }
+
+        /// <summary>
+        /// Handles the closing of the <see cref="SearchGeolocationView"/> dialog and resets the dialog context to the default context.
+        /// </summary>
+        /// <param name="view">The <see cref="SearchGeolocationView"/> instance that is being closed.</param>
+        /// <param name="dialogResultValue">The value to set as the dialog result.</param>
+        private void Closing(SearchGeolocationView view, bool dialogResultValue)
+        {
+            view.DialogResult = dialogResultValue;
+
+            // Set default MainWindowViewModel as context
+            _dialogService!.Initialize(App.Current.MainWindow.DataContext);
         }
         #endregion Methods
     }
